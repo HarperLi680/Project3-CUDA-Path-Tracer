@@ -46,7 +46,7 @@ Every feature is turned on or off with an environment variable, so I can compare
 | `PROJECT3_STOP_AFTER=N` | Stop after N iterations |
 | `PROJECT3_PRINT_PATH_COUNTS=1` | Print how many paths are left after each bounce |
 
-New scene file options (all optional, old scenes still work):
+New scene file options:
 
 * Camera: `APERTURE_RADIUS`, `FOCAL_DISTANCE`
 * Objects: `VELOCITY`, and new types `mesh` (with `FILE`), `mandelbulb`, `menger`
@@ -124,7 +124,7 @@ Before shading, I sort the paths by material with `thrust::sort_by_key`. The ide
 
 **Sorting made both scenes slower** (3.9× and 1.3×). The Nsight numbers explain it. Shading didn't get faster at all (0.109 → 0.115 ms, slightly slower), because my materials are all short, so there isn't much divergence to fix. But the sort itself takes 2.2 ms per iteration. I sort a whole struct with a custom compare function, so Thrust uses a merge sort instead of the much faster radix sort. It also has to move the 64-byte paths around.
 
-Sorting would help if the materials were expensive and very different (like microfacet materials or image textures). It would also be much cheaper to radix-sort just an integer material ID and use that to reorder the paths.
+Sorting would help if the materials were expensive and very different (like image textures). It would also be much cheaper to radix-sort just an integer material ID and use that to reorder the paths.
 
 ---
 
@@ -132,7 +132,7 @@ Sorting would help if the materials were expensive and very different (like micr
 
 ### Refraction
 
-Glass picks reflection or refraction for each sample, using the full Fresnel equations (not Schlick's approximation). When Snell's law has no answer, it's total internal reflection.
+Glass picks reflection or refraction for each sample, using the full Fresnel equations. When Snell's law has no answer, it's total internal reflection.
 
 ![Glass sphere](img/readme/glass.png)
 
@@ -395,7 +395,7 @@ PROJECT3_HEADLESS=1 ./build/bin/cis565_path_tracer scenes/cornell.json
 |---|---|
 | ![](img/readme/blooper-fireflies.png) | **Fireflies.** My first direct lighting only sampled the light. Ceiling points right next to the light got huge values, and they spread through the room as white dots. MIS fixed it. |
 
-Two bugs I only found by checking numbers, not by looking at images:
+Two bugs I found by checking numbers:
 
 * **1.2% too bright.** The direct lighting image looked fine, but its average brightness was always 1.2% higher than the reference, at both 64 and 512 samples. Noise wouldn't be the same every time, so it had to be a real bug: light from one bounce past the depth limit.
 * **Wrong GPU architecture.** A strange link error turned out to be files compiled for two different GPU architectures (see Build Notes).
@@ -406,4 +406,4 @@ Two bugs I only found by checking numbers, not by looking at images:
 * Menger sponge definition: [Wikipedia](https://en.wikipedia.org/wiki/Menger_sponge). The Mandelbulb uses its standard distance estimate formula.
 * The rest follows [PBRT](https://pbr-book.org/) and the course slides.
 
-I didn't use any third-party code besides the base code and Thrust. I wrote the OBJ loader, BVH, fractals, and noise myself.
+I didn't use any third-party code besides the base code and Thrust.
